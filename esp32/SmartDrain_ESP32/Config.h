@@ -7,8 +7,8 @@
 
 // Relay + Pump
 #define RELAY_PIN 26
-#define RELAY_ON LOW
-#define RELAY_OFF HIGH
+#define RELAY_ON HIGH
+#define RELAY_OFF LOW
 
 // LCD I2C
 #define LCD_SDA_PIN 21
