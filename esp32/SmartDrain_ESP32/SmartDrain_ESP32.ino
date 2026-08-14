@@ -1,6 +1,11 @@
 #include "WaterSensor.h"
 #include "Display.h"
 #include "Pump.h"
+#include "Buttons.h"
+#include "Config.h"
+
+unsigned long lastSystemUpdate = 0;
+const unsigned long SYSTEM_UPDATE_INTERVAL = 500;
 
 void setup()
 {
@@ -8,35 +13,47 @@ void setup()
 
     setupWaterSensors();
     setupPump();
+    setupButtons();
     setupDisplay();
 }
 
 void loop()
 {
-    updateWaterSensors();
-    updatePump();
-    updateDisplay();
+    // Phải đọc nút liên tục để không bỏ lỡ thao tác
+    updateButtons();
 
-    Serial.println("===== SMART DRAIN =====");
+    unsigned long currentTime = millis();
 
-    Serial.print("Input ADC: ");
-    Serial.print(inputWaterADC);
-    Serial.print(" | Level: ");
-    Serial.print(inputWaterPercent);
-    Serial.print("% | ");
-    Serial.println(getWaterLevelName(inputWaterPercent));
+    if (currentTime - lastSystemUpdate >= SYSTEM_UPDATE_INTERVAL)
+    {
+        lastSystemUpdate = currentTime;
 
-    Serial.print("Output ADC: ");
-    Serial.print(outputWaterADC);
-    Serial.print(" | Level: ");
-    Serial.print(outputWaterPercent);
-    Serial.print("% | ");
-    Serial.println(getWaterLevelName(outputWaterPercent));
+        updateWaterSensors();
+        updatePump();
+        updateDisplay();
 
-    Serial.print("Pump: ");
-    Serial.println(pumpRunning ? "ON" : "OFF");
+        Serial.println("===== SMART DRAIN =====");
 
-    Serial.println();
+        Serial.print("Mode: ");
+        Serial.println(getOperationModeName());
 
-    delay(500);
+        Serial.print("Input ADC: ");
+        Serial.print(inputWaterADC);
+        Serial.print(" | Level: ");
+        Serial.print(inputWaterPercent);
+        Serial.print("% | ");
+        Serial.println(getWaterLevelName(inputWaterPercent));
+
+        Serial.print("Output ADC: ");
+        Serial.print(outputWaterADC);
+        Serial.print(" | Level: ");
+        Serial.print(outputWaterPercent);
+        Serial.print("% | ");
+        Serial.println(getWaterLevelName(outputWaterPercent));
+
+        Serial.print("Pump: ");
+        Serial.println(pumpRunning ? "ON" : "OFF");
+
+        Serial.println();
+    }
 }
