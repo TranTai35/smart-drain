@@ -13,6 +13,9 @@ extern AlertLevel currentAlertLevel;
 void setupAlertSystem();
 void updateAlertSystem();
 
+void setBuzzerMuted(bool muted);
+bool isBuzzerMuted();
+
 const char* getAlertLevelName();
 
 #endif

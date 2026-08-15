@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "Config.h"
+#include "RuntimeConfig.h"
 #include "WaterSensor.h"
 #include "Pump.h"
 
@@ -12,7 +13,7 @@ bool pumpRunning = false;
 
 OperationMode operationMode = MODE_AUTO;
 PumpFault pumpFault = PUMP_FAULT_NONE;
-
+PumpSource pumpSource = PUMP_SOURCE_BOOT;
 // =========================
 // TIMERS
 // =========================
@@ -36,6 +37,7 @@ void setupPump()
     pumpRunning = false;
     operationMode = MODE_AUTO;
     pumpFault = PUMP_FAULT_NONE;
+    pumpSource = PUMP_SOURCE_BOOT;
 
     pumpStartTime = 0;
     drainCheckStartTime = 0;
@@ -46,12 +48,15 @@ void setupPump()
 // BASIC PUMP CONTROL
 // =========================
 
-void setPump(bool state)
+void setPump(
+    bool state,
+    PumpSource source)
 {
-    // Không cho bật bơm khi đang có lỗi chốt
     if (state &&
         pumpFault != PUMP_FAULT_NONE)
     {
+        pumpSource = PUMP_SOURCE_SAFETY;
+
         Serial.print(
             "[SAFETY] Khong the bat bom: "
         );
@@ -60,10 +65,11 @@ void setPump(bool state)
         return;
     }
 
-    // Không cho bật khi bể xả đã đầy
     if (state &&
-        outputWaterPercent >= OUTPUT_DANGER_LEVEL)
+        outputWaterPercent >= outputLimit)
     {
+        pumpSource = PUMP_SOURCE_SAFETY;
+
         Serial.println(
             "[SAFETY] Khong the bat bom: "
             "be xa da day"
@@ -72,26 +78,34 @@ void setPump(bool state)
         return;
     }
 
-    // Không ghi lại relay nếu trạng thái không đổi
     if (pumpRunning == state)
     {
+        // Khi hệ thống đang cưỡng chế an toàn,
+        // vẫn cần báo source là SAFETY
+        if (source == PUMP_SOURCE_SAFETY)
+        {
+            pumpSource = PUMP_SOURCE_SAFETY;
+        }
+
         return;
     }
 
     pumpRunning = state;
+    pumpSource = source;
 
     digitalWrite(
         RELAY_PIN,
-        pumpRunning ? RELAY_ON : RELAY_OFF
+        pumpRunning
+            ? RELAY_ON
+            : RELAY_OFF
     );
 
     if (pumpRunning)
     {
         pumpStartTime = millis();
-
-        // Bắt đầu chu kỳ kiểm tra hiệu quả thoát nước
         drainCheckStartTime = millis();
-        drainCheckStartPercent = inputWaterPercent;
+        drainCheckStartPercent =
+            inputWaterPercent;
     }
     else
     {
@@ -100,45 +114,63 @@ void setPump(bool state)
     }
 
     Serial.print("[PUMP] ");
-    Serial.println(
+    Serial.print(
         pumpRunning ? "ON" : "OFF"
     );
+
+    Serial.print(" | Source: ");
+    Serial.println(getPumpSourceName());
 }
 
 // =========================
 // OPERATION MODE
 // =========================
 
-void setOperationMode(OperationMode newMode)
+void setOperationMode(
+    OperationMode newMode)
 {
     if (operationMode == newMode)
     {
         return;
     }
 
-    // Đổi chế độ được xem là xác nhận lỗi
+    // Đổi chế độ được xem là
+    // thao tác xác nhận lỗi
     clearPumpFault();
+
+    // Luôn tắt bơm trước khi đổi chế độ
+    setPump(
+    false,
+    PUMP_SOURCE_MANUAL
+    );
 
     operationMode = newMode;
 
-    // Tắt bơm trước khi áp dụng chế độ mới
-    setPump(false);
-
     Serial.print("[MODE] ");
-    Serial.println(getOperationModeName());
+    Serial.println(
+        getOperationModeName()
+    );
 }
 
 void toggleOperationMode()
 {
     if (operationMode == MODE_AUTO)
     {
-        setOperationMode(MODE_MANUAL);
+        setOperationMode(
+            MODE_MANUAL
+        );
     }
     else
     {
-        setOperationMode(MODE_AUTO);
+        setOperationMode(
+            MODE_AUTO
+        );
     }
 }
+
+// =========================
+// MANUAL PUMP CONTROL
+// =========================
 
 void toggleManualPump()
 {
@@ -152,28 +184,29 @@ void toggleManualPump()
         return;
     }
 
-    // Nếu có lỗi chốt, lần bấm đầu chỉ xoá lỗi.
-    // Bơm vẫn giữ OFF.
+    // Nếu có lỗi chốt, lần bấm đầu
+    // chỉ dùng để xác nhận và xóa lỗi.
+    // Bơm vẫn giữ trạng thái OFF.
     if (pumpFault != PUMP_FAULT_NONE)
     {
         clearPumpFault();
-        setPump(false);
+        setPump(
+            false,
+            PUMP_SOURCE_MANUAL
+        );
 
         Serial.println(
-            "[BUTTON] Da xoa loi, bom van OFF"
+            "[BUTTON] Da xoa loi, "
+            "bom van OFF"
         );
 
         return;
     }
 
-    if (pumpRunning)
-    {
-        setPump(false);
-    }
-    else
-    {
-        setPump(true);
-    }
+    setPump(
+    !pumpRunning,
+    PUMP_SOURCE_MANUAL
+    );
 }
 
 // =========================
@@ -182,15 +215,20 @@ void toggleManualPump()
 
 void triggerPumpTimeout()
 {
-    if (pumpFault == PUMP_FAULT_TIMEOUT)
+    if (pumpFault ==
+        PUMP_FAULT_TIMEOUT)
     {
         return;
     }
 
-    pumpFault = PUMP_FAULT_TIMEOUT;
+    pumpFault =
+        PUMP_FAULT_TIMEOUT;
 
-    // Tắt bơm nhưng giữ lỗi lại
-    setPump(false);
+    // Tắt bơm nhưng giữ lỗi chốt
+    setPump(
+    false,
+    PUMP_SOURCE_SAFETY
+    );
 
     Serial.println(
         "[ALERT] PUMP_TIMEOUT - "
@@ -210,10 +248,14 @@ void triggerDrainAbnormal()
         return;
     }
 
-    pumpFault = PUMP_FAULT_DRAIN_ABNORMAL;
+    pumpFault =
+        PUMP_FAULT_DRAIN_ABNORMAL;
 
-    // Tắt bơm nhưng giữ lỗi lại
-    setPump(false);
+    // Tắt bơm nhưng giữ lỗi chốt
+    setPump(
+    false,
+    PUMP_SOURCE_SAFETY
+    );
 
     Serial.println(
         "[ALERT] DRAIN_ABNORMAL - "
@@ -228,11 +270,13 @@ void updateDrainEffectiveness()
         return;
     }
 
-    unsigned long currentTime = millis();
+    unsigned long currentTime =
+        millis();
 
     // Chưa đến thời điểm kiểm tra
-    if (currentTime - drainCheckStartTime <
-        DRAIN_CHECK_INTERVAL_MS)
+    if (currentTime -
+            drainCheckStartTime <
+        drainCheckIntervalMs)
     {
         return;
     }
@@ -241,19 +285,26 @@ void updateDrainEffectiveness()
         drainCheckStartPercent -
         inputWaterPercent;
 
-    Serial.print("[DRAIN CHECK] Start: ");
-    Serial.print(drainCheckStartPercent);
+    Serial.print(
+        "[DRAIN CHECK] Start: "
+    );
+    Serial.print(
+        drainCheckStartPercent
+    );
 
     Serial.print("% | Current: ");
-    Serial.print(inputWaterPercent);
+    Serial.print(
+        inputWaterPercent
+    );
 
     Serial.print("% | Drop: ");
     Serial.print(waterDrop);
-
     Serial.println("%");
 
-    // Nước giảm chưa đủ mức tối thiểu
-    if (waterDrop < DRAIN_MIN_DROP_PERCENT)
+    // Mực nước không giảm đủ
+    // theo cấu hình hiện tại
+    if (waterDrop <
+        drainMinDropPercent)
     {
         triggerDrainAbnormal();
         return;
@@ -261,12 +312,15 @@ void updateDrainEffectiveness()
 
     // Chu kỳ hiện tại đạt yêu cầu.
     // Bắt đầu chu kỳ kiểm tra tiếp theo.
-    drainCheckStartTime = currentTime;
+    drainCheckStartTime =
+        currentTime;
+
     drainCheckStartPercent =
         inputWaterPercent;
 
     Serial.println(
-        "[DRAIN CHECK] Hoat dong binh thuong"
+        "[DRAIN CHECK] "
+        "Hoat dong binh thuong"
     );
 }
 
@@ -276,12 +330,14 @@ void updateDrainEffectiveness()
 
 void clearPumpFault()
 {
-    if (pumpFault == PUMP_FAULT_NONE)
+    if (pumpFault ==
+        PUMP_FAULT_NONE)
     {
         return;
     }
 
-    pumpFault = PUMP_FAULT_NONE;
+    pumpFault =
+        PUMP_FAULT_NONE;
 
     Serial.println(
         "[ALERT] Da xoa loi bom"
@@ -299,7 +355,8 @@ unsigned long getPumpRuntimeMs()
         return 0;
     }
 
-    return millis() - pumpStartTime;
+    return millis() -
+        pumpStartTime;
 }
 
 // =========================
@@ -308,25 +365,31 @@ unsigned long getPumpRuntimeMs()
 
 void updatePump()
 {
-    // 1. Chống tràn hoạt động trong Auto và Manual
+    // 1. Chống tràn luôn hoạt động
+    // trong cả AUTO và MANUAL
     if (outputWaterPercent >=
-        OUTPUT_DANGER_LEVEL)
+        outputLimit)
     {
         if (pumpRunning)
         {
             Serial.println(
-                "[SAFETY] Be xa da day, dung bom"
+                "[SAFETY] Be xa da day, "
+                "dung bom"
             );
         }
 
-        setPump(false);
+        setPump(
+            false,
+            PUMP_SOURCE_SAFETY
+        );
         return;
     }
 
-    // 2. Giới hạn thời gian chạy liên tục
+    // 2. Giới hạn thời gian
+    // bơm chạy liên tục
     if (pumpRunning &&
         getPumpRuntimeMs() >=
-        MAX_PUMP_RUNTIME_MS)
+            maxPumpRuntimeMs)
     {
         triggerPumpTimeout();
         return;
@@ -335,30 +398,45 @@ void updatePump()
     // 3. Kiểm tra hiệu quả thoát nước
     updateDrainEffectiveness();
 
-    // Hàm trên có thể vừa tạo DRAIN_ABNORMAL
-    if (pumpFault != PUMP_FAULT_NONE)
+    // updateDrainEffectiveness() có thể
+    // vừa tạo lỗi DRAIN_ABNORMAL
+    if (pumpFault !=
+        PUMP_FAULT_NONE)
     {
-        setPump(false);
+        setPump(
+            false,
+            PUMP_SOURCE_SAFETY
+        );
         return;
     }
 
-    // 4. Manual chỉ điều khiển bằng nút hoặc MQTT
-    if (operationMode == MODE_MANUAL)
+    // 4. MANUAL chỉ được điều khiển
+    // bằng nút bấm hoặc MQTT
+    if (operationMode ==
+        MODE_MANUAL)
     {
         return;
     }
 
-    // 5. Auto với vùng trễ 70% - 30%
+    // 5. AUTO sử dụng vùng trễ động
     if (!pumpRunning &&
-        inputWaterPercent >= PUMP_START_LEVEL)
+        inputWaterPercent >=
+            pumpStartLevel)
     {
-        setPump(true);
+        setPump(
+            true,
+            PUMP_SOURCE_AUTO
+        );
     }
-    else if (pumpRunning &&
-             inputWaterPercent <=
-             PUMP_STOP_LEVEL)
+    else if (
+        pumpRunning &&
+        inputWaterPercent <=
+            pumpStopLevel)
     {
-        setPump(false);
+        setPump(
+            false,
+            PUMP_SOURCE_AUTO
+        );
     }
 }
 
@@ -368,7 +446,8 @@ void updatePump()
 
 const char* getOperationModeName()
 {
-    return operationMode == MODE_AUTO
+    return operationMode ==
+        MODE_AUTO
         ? "AUTO"
         : "MANUAL";
 }
@@ -385,5 +464,23 @@ const char* getPumpFaultName()
 
         default:
             return "NONE";
+    }
+}
+
+const char* getPumpSourceName()
+{
+    switch (pumpSource)
+    {
+        case PUMP_SOURCE_AUTO:
+            return "AUTO";
+
+        case PUMP_SOURCE_MANUAL:
+            return "MANUAL";
+
+        case PUMP_SOURCE_SAFETY:
+            return "SAFETY";
+
+        default:
+            return "BOOT";
     }
 }

@@ -6,15 +6,17 @@
 #include "Buttons.h"
 #include "AlertSystem.h"
 #include "NetworkManager.h"
+#include "MqttManager.h"
 
 unsigned long lastSystemUpdate = 0;
-const unsigned long SYSTEM_UPDATE_INTERVAL = 500;
-
+const unsigned long SYSTEM_UPDATE_INTERVAL = 500UL;
 void setup()
 {
     Serial.begin(9600);
 
     setupNetwork();
+    setupMqttManager();
+
     setupWaterSensors();
     setupPump();
     setupButtons();
@@ -25,7 +27,7 @@ void setup()
 void loop()
 {
     updateNetwork();
-    // Nút phải được đọc liên tục
+    updateMqttManager();
     updateButtons();
 
     unsigned long currentTime = millis();
@@ -101,5 +103,11 @@ void loop()
             Serial.println(WiFi.localIP());
         }
         Serial.println();
+        Serial.print("MQTT: ");
+        Serial.println(
+            isMqttConnected()
+                ? "CONNECTED"
+                : "DISCONNECTED"
+        );
     }
 }

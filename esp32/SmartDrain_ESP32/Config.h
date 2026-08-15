@@ -60,8 +60,8 @@
 // WI-FI
 // =========================
 
-#define WIFI_SSID "OPPO F7"
-#define WIFI_PASSWORD "khanghoang660385"
+#define WIFI_SSID "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
 
 // =========================
 // MQTT BROKER
