@@ -52,6 +52,12 @@
 #define PUMP_STOP_LEVEL 30
 #define OUTPUT_DANGER_LEVEL 80
 
+// Mức bể thu bị coi là nguy hiểm, dùng cho cảnh báo INPUT_TANK_DANGER.
+// Trùng mốc 90% ở bảng mục 4.2 báo cáo nhưng là hai khái niệm khác nhau:
+// hằng số này chỉ quyết định cảnh báo của bể thu, còn getWaterLevelName()
+// trong WaterSensor.cpp đặt tên cấp độ cho cả hai bể.
+#define INPUT_DANGER_LEVEL 90
+
 #define MAX_PUMP_RUNTIME_MS 120000UL
 #define DRAIN_CHECK_INTERVAL_MS 30000UL
 #define DRAIN_MIN_DROP_PERCENT 5
@@ -60,8 +66,10 @@
 // WI-FI
 // =========================
 
-#define WIFI_SSID "YOUR_WIFI_SSID"
-#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+// #define WIFI_SSID "YOUR_WIFI_SSID"
+// #define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+#define WIFI_SSID "nokia"
+#define WIFI_PASSWORD "11112222"
 
 // =========================
 // MQTT BROKER

@@ -55,8 +55,12 @@ OperationMode lastPublishedMode =
 PumpFault lastPublishedFault =
     PUMP_FAULT_NONE;
 
-AlertLevel lastPublishedAlertLevel =
-    ALERT_NORMAL;
+// So sánh bằng MÃ cảnh báo chứ không bằng AlertLevel.
+// Cả bốn cảnh báo đều cho AlertLevel = ALERT_DANGER, nên nếu so bằng mức thì
+// lúc chuyển từ cảnh báo này sang cảnh báo khác (ví dụ OUTPUT_TANK_FULL ->
+// INPUT_TANK_DANGER) hệ thống sẽ không nhận ra là đã đổi, và website phải
+// chờ tới nhịp tim 10 giây sau mới thấy cảnh báo mới.
+char lastPublishedAlertCode[32] = "";
 
 // =========================
 // PUMP COMMAND
@@ -532,88 +536,12 @@ void publishMode()
 }
 
 // =========================
-// ALERT INFORMATION
-// =========================
-
-const char* getMqttAlertCode()
-{
-    if (outputWaterPercent >=
-        outputLimit)
-    {
-        return "OUTPUT_TANK_FULL";
-    }
-
-    if (inputWaterPercent >= 90)
-    {
-        return "INPUT_TANK_DANGER";
-    }
-
-    if (pumpFault ==
-        PUMP_FAULT_TIMEOUT)
-    {
-        return "PUMP_TIMEOUT";
-    }
-
-    if (pumpFault ==
-        PUMP_FAULT_DRAIN_ABNORMAL)
-    {
-        return "DRAIN_ABNORMAL";
-    }
-
-    return "NONE";
-}
-
-const char* getMqttAlertSeverity()
-{
-    if (outputWaterPercent >=
-            outputLimit ||
-        inputWaterPercent >= 90)
-    {
-        return "DANGER";
-    }
-
-    if (pumpFault !=
-        PUMP_FAULT_NONE)
-    {
-        return "WARNING";
-    }
-
-    return "INFO";
-}
-
-const char* getMqttAlertMessage()
-{
-    if (outputWaterPercent >=
-        outputLimit)
-    {
-        return "Be xa da day, da dung bom";
-    }
-
-    if (inputWaterPercent >= 90)
-    {
-        return "Be thu o muc nguy hiem";
-    }
-
-    if (pumpFault ==
-        PUMP_FAULT_TIMEOUT)
-    {
-        return
-            "Bom chay qua thoi gian cho phep";
-    }
-
-    if (pumpFault ==
-        PUMP_FAULT_DRAIN_ABNORMAL)
-    {
-        return
-            "Thoat nuoc bat thuong, kiem tra ong";
-    }
-
-    return "He thong binh thuong";
-}
-
-// =========================
 // PUBLISH ALERT
 // =========================
+//
+// Mã, mức độ và mô tả đều lấy từ AlertSystem - nguồn sự thật duy nhất.
+// Trước đây MqttManager tự xét lại điều kiện một lần nữa, dẫn tới thứ tự ưu
+// tiên bị lặp ở hai nơi và có thể lệch nhau. Xem docs/fix.md mục 1.
 
 void publishAlert()
 {
@@ -621,12 +549,6 @@ void publishAlert()
     {
         return;
     }
-
-    bool alertActive =
-        strcmp(
-            getMqttAlertCode(),
-            "NONE"
-        ) != 0;
 
     char payload[280];
 
@@ -639,10 +561,10 @@ void publishAlert()
         "\"active\":%s,"
         "\"muted\":%s,"
         "\"uptime\":%lu}",
-        getMqttAlertCode(),
-        getMqttAlertSeverity(),
-        getMqttAlertMessage(),
-        alertActive
+        getAlertCode(),
+        getAlertSeverity(),
+        getAlertMessage(),
+        isAlertActive()
             ? "true"
             : "false",
         isBuzzerMuted()
@@ -741,8 +663,10 @@ void updateStatePublishing()
             lastPublishedMode ||
         pumpFault !=
             lastPublishedFault ||
-        currentAlertLevel !=
-            lastPublishedAlertLevel ||
+        strcmp(
+            getAlertCode(),
+            lastPublishedAlertCode
+        ) != 0 ||
         isBuzzerMuted() !=
             lastPublishedBuzzerMuted;
 
@@ -771,8 +695,14 @@ void updateStatePublishing()
     lastPublishedFault =
         pumpFault;
 
-    lastPublishedAlertLevel =
-        currentAlertLevel;
+    strncpy(
+        lastPublishedAlertCode,
+        getAlertCode(),
+        sizeof(lastPublishedAlertCode) - 1
+    );
+    lastPublishedAlertCode[
+        sizeof(lastPublishedAlertCode) - 1
+    ] = '\0';
 
     lastPublishedBuzzerMuted =
         isBuzzerMuted();
