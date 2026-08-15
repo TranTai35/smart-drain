@@ -1,0 +1,9 @@
+# Mat khau va thong tin rieng
+.env
+
+# Co so du lieu SQLite sinh ra khi chay
+data/
+
+# File tam cua Python
+__pycache__/
+*.pyc

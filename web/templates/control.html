@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Điều khiển — Smart Drain{% endblock %}
+
+{% block content %}
+<section class="card">
+    <header class="card-head">
+        <h2>Trạng thái hiện tại</h2>
+        <span class="muted" id="control-updated">—</span>
+    </header>
+
+    <div class="control-summary">
+        <div><span class="muted">Bể thu</span><strong id="c-input">—</strong></div>
+        <div><span class="muted">Bể xả</span><strong id="c-output">—</strong></div>
+        <div><span class="muted">Máy bơm</span><strong id="c-pump">—</strong></div>
+        <div><span class="muted">Chế độ</span><strong id="c-mode">—</strong></div>
+    </div>
+</section>
+
+<section class="grid grid-2">
+    <article class="card">
+        <header class="card-head"><h2>Chế độ vận hành</h2></header>
+        <p class="muted">
+            Ở chế độ <strong>Auto</strong>, ESP32 tự bật bơm khi bể thu đạt ngưỡng
+            và bể xả còn khả năng nhận nước. Ở chế độ <strong>Manual</strong>,
+            bơm do người dùng điều khiển bằng nút nhấn hoặc website.
+        </p>
+        <div class="btn-row">
+            <button class="btn btn-mode" data-mode="AUTO" id="btn-auto">Auto</button>
+            <button class="btn btn-mode" data-mode="MANUAL" id="btn-manual">Manual</button>
+        </div>
+    </article>
+
+    <article class="card">
+        <header class="card-head"><h2>Máy bơm</h2></header>
+        <p class="muted" id="pump-hint">
+            Chỉ bật được bơm khi hệ thống đang ở chế độ Manual và bể xả chưa vượt
+            ngưỡng an toàn. Lệnh tắt luôn được chấp nhận.
+        </p>
+        <div class="btn-row">
+            <button class="btn btn-on" id="btn-pump-on">Bật bơm</button>
+            <button class="btn btn-off" id="btn-pump-off">Tắt bơm</button>
+        </div>
+    </article>
+</section>
+
+<section class="card">
+    <header class="card-head">
+        <h2>Cảnh báo và còi</h2>
+        <span class="badge" id="c-alert">—</span>
+    </header>
+    <p class="muted">
+        Tắt còi chỉ làm im tiếng báo động. Cảnh báo vẫn còn hiệu lực, đèn LED vẫn
+        nhấp nháy và trạng thái vẫn được lưu lại.
+    </p>
+    <div class="btn-row">
+        <button class="btn btn-ghost" id="btn-mute-page">Tắt còi</button>
+        <button class="btn btn-ghost" id="btn-unmute-page">Bật lại còi</button>
+    </div>
+</section>
+
+<section class="card">
+    <header class="card-head">
+        <h2>Ngưỡng vận hành</h2>
+        <span class="muted">Gửi xuống ESP32 qua MQTT</span>
+    </header>
+
+    <p class="muted">
+        ESP32 kiểm tra lại mọi giá trị trước khi áp dụng. Ô bên dưới luôn hiển thị
+        giá trị <strong>đang thực sự có hiệu lực</strong> trên thiết bị.
+    </p>
+
+    <div class="config-form">
+        {% for key, field in config_fields.items() %}
+        <div class="config-row">
+            <label for="cfg-{{ key }}">{{ field.label }}</label>
+            <div class="config-input">
+                <input type="number" id="cfg-{{ key }}" data-key="{{ key }}"
+                       min="{{ field.min }}" max="{{ field.max }}" step="1">
+                <span class="muted">{{ field.min }}–{{ field.max }}</span>
+                <button class="btn btn-small btn-cfg" data-key="{{ key }}">Lưu</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/control.js') }}"></script>
+{% endblock %}

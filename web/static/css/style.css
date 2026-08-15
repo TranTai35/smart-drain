@@ -1,0 +1,413 @@
+/* Smart Drain - giao dien website
+   Khong dung thu vien CSS ngoai: hom trinh dien co the khong co Internet,
+   moi thu phai chay duoc offline. */
+
+:root {
+    --bg: #0f172a;
+    --bg-soft: #1e293b;
+    --card: #1a2438;
+    --border: #2c3a52;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+
+    --blue: #38bdf8;
+    --blue-dark: #0284c7;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --red-dark: #dc2626;
+
+    --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---------- Thanh tren ---------- */
+
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 14px 24px;
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--border);
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+
+.brand-mark {
+    width: 40px; height: 40px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    color: #06263a;
+    border-radius: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.brand-name { font-weight: 700; font-size: 17px; }
+.brand-sub { font-size: 12px; color: var(--text-dim); }
+
+.nav { display: flex; gap: 4px; margin-left: auto; }
+
+.nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+}
+
+.nav a:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+.nav a.active { background: var(--blue); color: #06263a; font-weight: 600; }
+
+.conn { display: flex; gap: 8px; }
+
+.pill {
+    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pill-on { background: rgba(52, 211, 153, 0.16); color: var(--green); }
+.pill-off { background: rgba(248, 113, 113, 0.16); color: var(--red); }
+
+/* ---------- Bo cuc ---------- */
+
+.container {
+    flex: 1;
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.grid { display: grid; gap: 20px; }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid-4 { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.card-head h2 { font-size: 15px; font-weight: 600; letter-spacing: 0.2px; }
+
+.muted { color: var(--text-dim); font-size: 13px; }
+.link { color: var(--blue); text-decoration: none; font-size: 13px; }
+.hidden { display: none !important; }
+
+.footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-dim);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+}
+
+/* ---------- Bang canh bao ---------- */
+
+.alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--red);
+    background: rgba(248, 113, 113, 0.12);
+}
+
+.alert-banner.warning {
+    border-color: var(--amber);
+    background: rgba(251, 191, 36, 0.12);
+}
+
+.alert-icon {
+    width: 36px; height: 36px;
+    flex-shrink: 0;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    font-weight: 800;
+    font-size: 20px;
+}
+
+.alert-banner.warning .alert-icon { background: var(--amber); color: #422006; }
+.alert-body { flex: 1; }
+.alert-title { font-weight: 600; font-size: 15px; }
+.alert-meta { font-size: 12.5px; color: var(--text-dim); margin-top: 2px; }
+
+/* ---------- The be nuoc ---------- */
+
+.tank-card { display: flex; flex-direction: column; }
+
+.tank {
+    position: relative;
+    height: 190px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.6);
+    overflow: hidden;
+}
+
+.tank-fill {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 0%;
+    background: linear-gradient(180deg, var(--blue), var(--blue-dark));
+    transition: height 0.6s ease;
+}
+
+.tank-fill-out { background: linear-gradient(180deg, #a78bfa, #7c3aed); }
+.tank-fill.danger { background: linear-gradient(180deg, #fca5a5, var(--red-dark)); }
+
+.tank-marks { position: absolute; inset: 0; pointer-events: none; }
+
+.tank-marks span {
+    position: absolute;
+    left: 0; right: 0;
+    height: 0;
+    border-top: 1px dashed rgba(226, 232, 240, 0.4);
+}
+
+.tank-marks span::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 6px;
+    top: -16px;
+    font-size: 10.5px;
+    color: var(--text-dim);
+}
+
+.tank-value {
+    font-size: 34px;
+    font-weight: 700;
+    margin-top: 14px;
+    line-height: 1;
+}
+
+.tank-value small { font-size: 16px; color: var(--text-dim); margin-left: 2px; }
+.tank-adc { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+.badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.16);
+    color: var(--text-dim);
+}
+
+.badge.low { background: rgba(52, 211, 153, 0.16); color: var(--green); }
+.badge.medium { background: rgba(56, 189, 248, 0.16); color: var(--blue); }
+.badge.high { background: rgba(251, 191, 36, 0.16); color: var(--amber); }
+.badge.danger { background: rgba(248, 113, 113, 0.16); color: var(--red); }
+
+/* ---------- O thong so ---------- */
+
+.stat { text-align: center; }
+.stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; }
+.stat-value { font-size: 24px; font-weight: 700; margin: 6px 0 2px; }
+.stat-sub { font-size: 12px; color: var(--text-dim); }
+
+.stat-value.on { color: var(--green); }
+.stat-value.off { color: var(--text-dim); }
+.stat-value.warn { color: var(--amber); }
+.stat-value.bad { color: var(--red); }
+
+/* ---------- Nut ---------- */
+
+.btn {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text);
+    cursor: pointer;
+    transition: filter 0.15s, opacity 0.15s;
+}
+
+.btn:hover:not(:disabled) { filter: brightness(1.25); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-small { padding: 6px 14px; font-size: 12.5px; }
+.btn-on { background: var(--green); border-color: var(--green); color: #052e21; }
+.btn-off { background: var(--red); border-color: var(--red); color: #450a0a; }
+.btn-ghost { background: transparent; }
+.btn-mode.active { background: var(--blue); border-color: var(--blue); color: #06263a; }
+
+/* ---------- Trang dieu khien ---------- */
+
+.control-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+}
+
+.control-summary > div { display: flex; flex-direction: column; gap: 2px; }
+.control-summary strong { font-size: 19px; }
+
+.config-form { display: flex; flex-direction: column; gap: 14px; }
+
+.config-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.config-row label { font-size: 14px; }
+.config-input { display: flex; align-items: center; gap: 10px; }
+
+.config-input input, .select {
+    width: 90px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.select { width: auto; }
+
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.config-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 12px 14px;
+}
+
+.config-item .k { font-size: 12px; color: var(--text-dim); }
+.config-item .v { font-size: 18px; font-weight: 700; margin-top: 2px; }
+
+/* ---------- Bieu do ---------- */
+
+canvas { width: 100%; display: block; }
+
+.legend { display: flex; gap: 16px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-dim); }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot-in { background: var(--blue); }
+.dot-out { background: #a78bfa; }
+
+/* ---------- Bo loc + bang ---------- */
+
+.filter-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.quick-range, .date-range { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.date-range label { font-size: 13px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+
+.date-range input {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+}
+
+.range-btn.active { background: var(--blue); border-color: var(--blue); color: #06263a; }
+
+.table-wrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 560px; }
+.table th, .table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.table th { color: var(--text-dim); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.table tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+.tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: rgba(148,163,184,0.16);
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.tag.ALERT { background: rgba(248,113,113,0.16); color: var(--red); }
+.tag.ALERT_CLEAR { background: rgba(52,211,153,0.16); color: var(--green); }
+.tag.PUMP { background: rgba(52,211,153,0.16); color: var(--green); }
+.tag.MODE { background: rgba(56,189,248,0.16); color: var(--blue); }
+.tag.CONNECTION { background: rgba(251,191,36,0.16); color: var(--amber); }
+
+.acked { color: var(--green); font-size: 12.5px; }
+
+/* ---------- Thong bao ---------- */
+
+.toast {
+    position: fixed;
+    top: 76px;
+    right: 24px;
+    z-index: 50;
+    padding: 12px 18px;
+    border-radius: 9px;
+    font-size: 13.5px;
+    font-weight: 500;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+    max-width: 340px;
+}
+
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.ok { border-color: var(--green); color: var(--green); }
+.toast.err { border-color: var(--red); color: var(--red); }
+
+@media (max-width: 640px) {
+    .topbar { padding: 12px 16px; }
+    .container { padding: 16px; }
+    .nav { order: 3; width: 100%; margin-left: 0; }
+    .conn { order: 2; }
+}

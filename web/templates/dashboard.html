@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Tổng quan — Smart Drain{% endblock %}
+
+{% block content %}
+<div id="alert-banner" class="alert-banner hidden">
+    <div class="alert-icon">!</div>
+    <div class="alert-body">
+        <div class="alert-title" id="alert-title">—</div>
+        <div class="alert-meta" id="alert-meta">—</div>
+    </div>
+    <button id="btn-mute" class="btn btn-ghost">Tắt còi</button>
+</div>
+
+<section class="grid grid-2">
+    <article class="card tank-card">
+        <header class="card-head">
+            <h2>Bể thu</h2>
+            <span class="badge" id="input-level">—</span>
+        </header>
+
+        <div class="tank">
+            <div class="tank-fill" id="input-fill"></div>
+            <div class="tank-marks">
+                <span style="bottom:70%" data-label="70%"></span>
+                <span style="bottom:90%" data-label="90%"></span>
+            </div>
+        </div>
+
+        <div class="tank-value"><span id="input-percent">—</span><small>%</small></div>
+        <div class="tank-adc">ADC: <span id="input-adc">—</span></div>
+    </article>
+
+    <article class="card tank-card">
+        <header class="card-head">
+            <h2>Bể xả</h2>
+            <span class="badge" id="output-level">—</span>
+        </header>
+
+        <div class="tank">
+            <div class="tank-fill tank-fill-out" id="output-fill"></div>
+            <div class="tank-marks">
+                <span style="bottom:80%" data-label="80%"></span>
+            </div>
+        </div>
+
+        <div class="tank-value"><span id="output-percent">—</span><small>%</small></div>
+        <div class="tank-adc">
+            Khả năng tiếp nhận: <span id="output-capacity">—</span>
+        </div>
+    </article>
+</section>
+
+<section class="grid grid-4">
+    <article class="card stat">
+        <div class="stat-label">Máy bơm</div>
+        <div class="stat-value" id="pump-state">—</div>
+        <div class="stat-sub" id="pump-sub">—</div>
+    </article>
+
+    <article class="card stat">
+        <div class="stat-label">Chế độ</div>
+        <div class="stat-value" id="mode-value">—</div>
+        <div class="stat-sub" id="mode-sub">—</div>
+    </article>
+
+    <article class="card stat">
+        <div class="stat-label">Cảnh báo</div>
+        <div class="stat-value" id="alert-value">—</div>
+        <div class="stat-sub" id="alert-sub">—</div>
+    </article>
+
+    <article class="card stat">
+        <div class="stat-label">ESP32</div>
+        <div class="stat-value" id="esp-value">—</div>
+        <div class="stat-sub" id="esp-sub">—</div>
+    </article>
+</section>
+
+<section class="card">
+    <header class="card-head">
+        <h2>Mức nước 10 phút gần nhất</h2>
+        <div class="legend">
+            <span class="legend-item"><i class="dot dot-in"></i>Bể thu</span>
+            <span class="legend-item"><i class="dot dot-out"></i>Bể xả</span>
+        </div>
+    </header>
+    <canvas id="live-chart" height="220"></canvas>
+</section>
+
+<section class="card">
+    <header class="card-head">
+        <h2>Thông số đang áp dụng</h2>
+        <a href="/control" class="link">Chỉnh sửa →</a>
+    </header>
+    <div class="config-grid" id="config-grid">
+        <div class="muted">Đang chờ dữ liệu từ ESP32...</div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Lịch sử — Smart Drain{% endblock %}
+
+{% block content %}
+<section class="card">
+    <header class="card-head">
+        <h2>Bộ lọc thời gian</h2>
+        <span class="muted" id="history-count">—</span>
+    </header>
+
+    <div class="filter-row">
+        <div class="quick-range">
+            <button class="btn btn-small range-btn active" data-hours="1">1 giờ</button>
+            <button class="btn btn-small range-btn" data-hours="6">6 giờ</button>
+            <button class="btn btn-small range-btn" data-hours="24">24 giờ</button>
+        </div>
+
+        <div class="date-range">
+            <label>Từ ngày <input type="date" id="date-from"></label>
+            <label>Đến ngày <input type="date" id="date-to"></label>
+            <button class="btn btn-small" id="btn-apply-range">Áp dụng</button>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <header class="card-head">
+        <h2>Biểu đồ mức nước</h2>
+        <div class="legend">
+            <span class="legend-item"><i class="dot dot-in"></i>Bể thu</span>
+            <span class="legend-item"><i class="dot dot-out"></i>Bể xả</span>
+        </div>
+    </header>
+    <canvas id="history-chart" height="300"></canvas>
+    <div class="muted" id="chart-empty">Chưa có dữ liệu trong khoảng thời gian này.</div>
+</section>
+
+<section class="card">
+    <header class="card-head">
+        <h2>Nhật ký sự kiện</h2>
+        <select id="event-filter" class="select">
+            <option value="">Tất cả</option>
+            <option value="ALERT">Cảnh báo</option>
+            <option value="PUMP">Máy bơm</option>
+            <option value="MODE">Chế độ</option>
+            <option value="CONNECTION">Kết nối</option>
+        </select>
+    </header>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Loại</th>
+                    <th>Nội dung</th>
+                    <th>Xác nhận</th>
+                </tr>
+            </thead>
+            <tbody id="event-body">
+                <tr><td colspan="4" class="muted">Đang tải...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart Drain{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-mark">SD</span>
+            <div>
+                <div class="brand-name">Smart Drain</div>
+                <div class="brand-sub">Hệ thống giám sát và điều khiển thoát nước</div>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <a href="/" class="{{ 'active' if active_page == 'dashboard' }}">Tổng quan</a>
+            <a href="/control" class="{{ 'active' if active_page == 'control' }}">Điều khiển</a>
+            <a href="/history" class="{{ 'active' if active_page == 'history' }}">Lịch sử</a>
+        </nav>
+
+        <div class="conn">
+            <span id="esp-status" class="pill pill-off">ESP32: —</span>
+            <span id="mqtt-status" class="pill pill-off">MQTT: —</span>
+        </div>
+    </header>
+
+    <div id="toast" class="toast"></div>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        Đồ án Vật lý cho Công nghệ thông tin — Lớp 24C01 ·
+        24127119 · 24127410 · 24127476
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
