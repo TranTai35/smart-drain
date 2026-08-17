@@ -139,6 +139,5 @@ class EmailNotifier:
             f"({tank_output.get('level', '?')})\n"
             f"May bom       : {pump_state} (nguyen nhan: {pump_source})\n"
             f"Che do        : {state.get('mode', '?')}\n"
-            f"Thoi gian bom : {pump.get('runtime', 0)} giay\n\n"
             "Email nay duoc gui tu dong boi he thong Smart Drain.\n"
         )
